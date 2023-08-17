@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
     # ------------------------------------
     # choose test scenario below
-    agent_choice = 6
+    agent_choice = 2
     # 1: random vs random
     # 2: intelligent vs intelligent
     # 3: human vs human

@@ -18,6 +18,8 @@ class ConnectFourEnvironment(ConnectFourBaseEnvironment):
         power_up_R = game_state['power-up-R']  # wall
         player_turn = str(game_state['player-turn'])  # Y
 
+        board = game_state['game-board'].get_map()
+
         if player_turn == 'Y':
             powerup = power_up_Y
         elif player_turn == 'R':
@@ -38,6 +40,8 @@ class ConnectFourEnvironment(ConnectFourBaseEnvironment):
                     legal_actions.append('use-power-up-{0}'.format(empty_cell[0]))
 
                 # can only popup own checkers at non-empty spaces - TBC
+                # if game_board.get_map() == player_turn:
+                #    legal_actions.append('popup-{0}'.format(empty_cell[0]))
                 # print(game_board.get_map())
                 # board = game_board.get_map()
                 # boardrow = list(board[5])
@@ -51,18 +55,7 @@ class ConnectFourEnvironment(ConnectFourBaseEnvironment):
                 #         print('Index of bottom row: {0}'.format(ind))
                 #         legal_actions.append('popup-{0}'.format(empty_cell[0]))
 
-            # print(legal_actions)
-            # if powerup is not None:
-            #     use_powerup_Y = game_board.find_value('Y')
-            #     print(use_powerup_Y)
-            #     if powerup == 'anvil':
-            #         pass
-            #     if powerup == 'wall':
-            #         pass
-            #     if powerup == 'x2':
-            #         pass
-                    # legal_actions.append('use-power-up-{0}'.format(use_powerup_Y))
-
+        # print(board)
         return legal_actions
 
     # TODO

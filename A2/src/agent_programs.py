@@ -59,18 +59,11 @@ def human_agent(percepts, actuators):
     if not ConnectFourEnvironment.is_terminal(game_state):
         legal_moves = ConnectFourEnvironment.get_legal_actions(game_state)
         try:
-            # board = game_state['game-board'].get_map()
-            # print(board)
+            board = game_state['game-board'].get_map()
+            print(board)
             action1 = ConnectFourGame.wait_for_user_input()
             if action1 in legal_moves:
                 action = action1
-            # else:
-
-            # print('Action: {0}'.format(action))
-            # pup_keys = ['a','s','d','f','g','h','j']
-
-                # print('No more powerups available.')
-                # return action
 
         except IndexError as e:
             print(
