@@ -32,9 +32,11 @@ class ConnectFourEnvironment(ConnectFourBaseEnvironment):
         if winner is None:
             for empty_cell in empty_cells:
 
+                # Legal release moves
                 # release checkers at empty spaces - works
                 legal_actions.append('release-{0}'.format(empty_cell[0]))
 
+                # Legal popup moves
                 # can only popup own checkers at non-empty spaces - works
                 board = game_board.get_map()
                 boardrow = list(board[5])
@@ -47,6 +49,7 @@ class ConnectFourEnvironment(ConnectFourBaseEnvironment):
                     # print('Index of bottom row: {0}'.format(ind))
                     legal_actions.append('popup-{0}'.format(ind))
 
+                # Legal powerup moves
                 # use power up if available - works
                 # so long as powerup is not None (Red and Yellow)
                 if powerup is not None:

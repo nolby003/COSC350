@@ -92,6 +92,7 @@ def intelligent_behaviour(percepts, actuator):
 
     if not ConnectFourEnvironment.is_terminal(game_state):
 
+        # an attempt to implement minimax but kept getting errors
         # print(game_state['game-board'].get_map()
         board = game_state['game-board'].get_map()
         # col_count = ConnectFourEnvironment.N_COLS
