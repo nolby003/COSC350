@@ -98,7 +98,7 @@ def intelligent_behaviour(percepts, actuator):
         # row_count = ConnectFourEnvironment.N_ROWS
         # player = game_state['player-turn']
 
-        print(board)
+        #print(board)
         # if player == 'Y':
         #     print('Player turn: Y')
         #     col = random.randint(0, col_count)
@@ -116,7 +116,7 @@ def intelligent_behaviour(percepts, actuator):
 
         tic = time.time()
         root_node = MCTSGraphNode(game_state, None, None)
-        best_move = algos.mcts(root_node, player_turn, max_time=1)
+        best_move = algos.mcts(root_node, player_turn)
         toc = time.time()
         print("[MTCS (player {0})] Elapsed (sec): {1:.6f}".format(player_turn, toc-tic))
         if best_move is not None:

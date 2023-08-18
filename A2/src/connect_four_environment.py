@@ -31,31 +31,39 @@ class ConnectFourEnvironment(ConnectFourBaseEnvironment):
         winner = ConnectFourEnvironment.get_winner(game_state)
         if winner is None:
             for empty_cell in empty_cells:
+
                 # release checkers at empty spaces - works
                 legal_actions.append('release-{0}'.format(empty_cell[0]))
+
+                # can only popup own checkers at non-empty spaces - TBC
+                board = game_board.get_map()
+                boardrow = list(board[5])
+                # print(board[5])
+                for player in boardrow:
+                    # print('Player: {0}'.format(player))
+                    # print('Empty cell: {0}'.format(empty_cell[0]))
+                    if player == player_turn:
+                        ind = boardrow.index(player_turn)
+                        # print('Index of bottom row: {0}'.format(ind))
+                        legal_actions.append('popup-{0}'.format(ind))
 
                 # use power up if available - works
                 # so long as powerup is not None (Red and Yellow)
                 if powerup is not None:
                     legal_actions.append('use-power-up-{0}'.format(empty_cell[0]))
 
-                # can only popup own checkers at non-empty spaces - TBC
-                # if game_board.get_map() == player_turn:
-                #    legal_actions.append('popup-{0}'.format(empty_cell[0]))
-                # print(game_board.get_map())
-                # board = game_board.get_map()
-                # boardrow = list(board[5])
-                # # print(board[5][0])
-                # for player in boardrow:
-                #     print('Player: {0}'.format(player))
-                #     print('Empty cell: {0}'.format(empty_cell[0]))
-                #     if player == player_turn:
-                #         # print('Yes!')
-                #         ind = boardrow.index(player_turn)
-                #         print('Index of bottom row: {0}'.format(ind))
-                #         legal_actions.append('popup-{0}'.format(empty_cell[0]))
 
-        # print(board)
+                # board = game_board.get_map()
+                # bottomRow = list(game_board.get_column(5))
+                # # print(bottomRow)
+                # for slot in bottomRow:
+                # #print(slot[0])
+                #     if slot == player_turn:
+                #         ind = bottomRow.index(slot)
+                #         print(slot)
+                #         legal_actions.append('popup-{0}'.format(ind))
+
+        # print(legal_actions)
         return legal_actions
 
     # TODO
