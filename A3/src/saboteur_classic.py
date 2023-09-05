@@ -14,9 +14,6 @@ GREEN = (255, 125, 125)
 
 DISPLAY_WIDTH = 1024
 DISPLAY_HEIGHT = 768
-POWERUPS_BAR_HEIGHT = 35
-SCORE_BAR_HEIGHT = 35
-INFO_BAR_HEIGHT = 35
 BOX_SIZE = 60
 
 NCOLS = 20
@@ -42,8 +39,8 @@ class SaboteurGame:
 
         self._n_cols = NCOLS
         self._n_rows = NROWS
-        self._padding_left = int((self._n_cols * self._box_size))
-        self._padding_top = int((self._n_rows * self._box_size))
+        self._padding_left = int((self._display_size[0] - NCOLS*self._box_size)/2)
+        self._padding_top = int((self._display_size[1] - NCOLS*self._box_size)/2)
 
         self._coordinates = np.array([[None] * self._n_cols] * self._n_rows)
         for y in range(self._n_rows):
@@ -166,24 +163,25 @@ class SaboteurGame:
     def _reset_bg(self):
         self._display.fill(WHITE)
 
-    def _draw_card(self, x, y, alpha=255):
-        # coord = zip(x, y)
-        color = BLUE
+    def _draw_card(self, x, y, ttype):
+        if ttype == 'blank':
+            color = WHITE
+        else:
+            color = BLUE
         x_coord = self._padding_left + x * self._box_size
         y_coord = self._padding_top + y * self._box_size
-        # print(x_coord, y_coord)
-        surface = pygame.Surface((20, 20))
-        surface.set_alpha(alpha)  # alpha level
-        pygame.draw.rect(surface, color, (x, y, 20, 20))
-        # self._display.blit(surface, (x_coord, y_coord))
+        pygame.draw.rect(self._display, color, pygame.Rect(x_coord, y_coord, self._box_size, self._box_size))
 
     # draw game board within pygame window
     def _draw_board(self):
         for i in range(0, self._n_cols):
             for j in range(0, self._n_rows):
-                if self._board.get_item_value(j, i) is not None:
-                    self._draw_card(i, j)
-        # pygame.display.flip()
+                if self._board.get_item_value(i, j) is not None:
+                    type = 'card'
+                    self._draw_card(i, j, type)
+                else:
+                    type = 'blank'
+                    self._draw_card(i, j, type)
 
     # draw text to pygame window
     def _draw_text(self, text_message, padding_top, orientation, font_size=20):
