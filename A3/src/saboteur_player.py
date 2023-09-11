@@ -1,24 +1,13 @@
 import random
+from une_ai.models import Agent, GridMap
 
-from une_ai.models import Agent
-from une_ai.models import GridMap
-
+from A3.src import deck
 from saboteur_base_environment import SaboteurBaseEnvironment
 
 
-
 class SaboteurPlayer(Agent):
-    # define number of players and build list
-    # dynamic so that you can extend or reduce amount of players
-    numPlayers = 8
-    playerList = []
-    count = 0
-    while count <= numPlayers:
-        playerList.append('Player'.format(count))
-        count += 1
 
-    # define player groups
-    player_groups = ['Gold-Diggers', 'Saboteurs']
+    play_hand = ['path', 'mend', 'sab', 'discard']
 
     # Constructor
     def __init__(self, agent_name, agent_program):
@@ -27,19 +16,33 @@ class SaboteurPlayer(Agent):
     # Sensors
     def add_all_sensors(self):
         self.add_sensor(
-            sensor_name='',
-            initial_value='',
-            validation_function=''
+            sensor_name='game-board-sensor',
+            initial_value=GridMap(0, 0, None),
+            validation_function=lambda v: [None]
+        )
+        self.add_sensor(
+            sensor_name='turn-taking-indicator',
+            initial_value='Miner',
+            validation_function=lambda v: v in ['Miner', 'Saboteur']
+        )
+        self.add_sensor(
+            sensor_name='player-hand',
+            initial_value=[],
+            validation_function=lambda v: isinstance(v, list)
         )
 
     # Actuators
     def add_all_actuators(self):
         self.add_actuator(
-            actuator_name='',
-            initial_value='',
-            validation_function=''
+            actuator_name='play-hand',
+            initial_value='path',
+            validation_function=lambda v: v in SaboteurPlayer.play_hand
         )
 
     # Actions
     def add_all_actions(self):
-        pass
+        for card in SaboteurPlayer.play_hand:
+            self.add_action(
+                'play-hand-{0}'.format(card),
+                lambda c=card: {'play-hand': c}
+            )
