@@ -38,7 +38,7 @@ class PathCard(Card):
             cross_road = PathCard.cross_road()
             self._tunnels = cross_road.get_tunnels()
             if special_card in ['goal', 'gold']:
-                self._revealed = True
+                self._revealed = False
         else:
             self._tunnels = tunnels
 

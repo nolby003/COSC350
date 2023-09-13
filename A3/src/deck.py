@@ -54,49 +54,7 @@ CARD_SIZE = (80, 80)
 
 class Deck():
     def __init__(self):
-        self._deck = [
-            'E',
-            'EW',
-            'EWC',
-            'N',
-            'NE',
-            'NEC',
-            'NEW',
-            'NEWC',
-            'NS',
-            'NSC',
-            'NSE',
-            'NSEC',
-            'NSEW',
-            'NSEWC',
-            'NSW',
-            'NSWC',
-            'NW',
-            'NWC',
-            'S',
-            'SE',
-            'SEC',
-            'SEW',
-            'SEWC',
-            'SW',
-            'SWC',
-            'W',
-            'mend_lantcart',
-            'mend_axelant',
-            'mend_axecart',
-            'mend_cart',
-            'mend_axe',
-            'mend_lant',
-            'sab_axe',
-            'sab_cart',
-            'sab_lant',
-            'map',
-            'dynamite',
-            None
-        ]
-        #self._initialise_deck()
-        #self.shuffle()
-        #self.card_reveal = False
+        self._deck = []
 
     # card images
     cards = {
@@ -216,68 +174,62 @@ class Deck():
         }
     }
 
-    def _initialise_deck(self):
+    def set_decks():
 
+        print('Deck being configured.')
+
+        path_card_deck = []
         # path cards
         for i in range(4):
-            # self._deck.append(PathCard.vertical_tunnel())
-            self._deck.append('NSC')
+            path_card_deck.append('NSC')
 
         for i in range(5):
-            # self._deck.append(PathCard.vertical_junction())
-            self._deck.append('NSEC')
+            path_card_deck.append('NSEC')
 
         for i in range(5):
-            # self._deck.append(PathCard.cross_road())
-            self._deck.append('NSEWC')
+            path_card_deck.append('NSEWC')
 
         for i in range(5):
-            # self._deck.append(PathCard.horizontal_junction())
-            self._deck.append('NEWC')
+            path_card_deck.append('NEWC')
 
         for i in range(3):
-            # self._deck.append(PathCard.horizontal_tunnel())
-            self._deck.append('EWC')
+            path_card_deck.append('EWC')
 
         for i in range(4):
-            # self._deck.append(PathCard.turn())
-            self._deck.append('NEC')
+            path_card_deck.append('NEC')
 
         for i in range(5):
-            # self._deck.append(PathCard.reversed_turn())
-            self._deck.append('NWC')
+            path_card_deck.append('NWC')
 
-        # self._deck.append(PathCard.dead_end(['south']))
-        self._deck.append('S')
-        # self._deck.append(PathCard.dead_end(['north', 'south']))
-        self._deck.append('NS')
-        # self._deck.append(PathCard.dead_end(['north', 'east', 'south']))
-        self._deck.append('NSE')
-        # self._deck.append(PathCard.dead_end(['north', 'east', 'south', 'west']))
-        self._deck.append('NSEW')
-        # self._deck.append(PathCard.dead_end(['west', 'north', 'east']))
-        self._deck.append('NEW')
-        # self._deck.append(PathCard.dead_end(['west', 'east']))
-        self._deck.append('EW')
-        # self._deck.append(PathCard.dead_end(['south', 'east']))
-        self._deck.append('SE')
-        # self._deck.append(PathCard.dead_end(['south', 'west']))
-        self._deck.append('SW')
-        # self._deck.append(PathCard.dead_end(['west']))
-        self._deck.append('W')
+        path_card_deck.append('S')
+        path_card_deck.append('NS')
+        path_card_deck.append('NSE')
+        path_card_deck.append('NSEW')
+        path_card_deck.append('NEW')
+        path_card_deck.append('EW')
+        path_card_deck.append('SE')
+        path_card_deck.append('SW')
+        path_card_deck.append('W')
 
+        action_card_deck = []
         # Action cards
         for i in range(6):
-            self._deck.append(ActionCard('map'))
+            action_card_deck.append('map')
 
         for i in range(9):
-            self._deck.append(ActionCard('sabotage'))
+            action_card_deck.append('sabotage')
 
         for i in range(9):
-            self._deck.append(ActionCard('mend'))
+            action_card_deck.append('mend')
 
         for i in range(3):
-            self._deck.append(ActionCard('dynamite'))
+            action_card_deck.append('dynamite')
+
+        # hand out x cards to each player
+        all_items = path_card_deck
+        all_items.extend(action_card_deck)
+
+        return all_items
 
     # shuffle deck
     def shuffle(self):

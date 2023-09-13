@@ -2,6 +2,7 @@ import pygame
 import numpy as np
 
 from deck import Deck
+from saboteur_player import SaboteurPlayer
 
 BLACK = (30, 30, 30)
 WHITE = (255, 255, 255)
@@ -34,12 +35,15 @@ class SaboteurGame:
         self._window_clock = window_clock
         self._display_size = (display_w, display_h)
         self._agents = {'Miner': agent_miner, 'Saboteur': agent_saboteur}
+        self._nplayers = players
+        SaboteurPlayer.set_players(players)
+
         self._environment = environment
         self._last_action = ""
 
         game_state = self._environment.get_game_state()
         game_board = game_state['game-board']
-        self._players = players
+        # self._players = players
 
         self._n_cols = game_board.get_width()
         self._n_rows = game_board.get_height()
@@ -68,7 +72,7 @@ class SaboteurGame:
             return
 
         cur_agent = type(self._environment).turn(game_state)
-        # print(cur_player)
+        # print(cur_agent)
         # print(game_state['player-turn'])
 
         # SENSE
@@ -83,7 +87,7 @@ class SaboteurGame:
         self._agents[cur_agent].act(actions, self._environment)
 
         board = game_state['game-board']
-        board.set_item_value(1, 3, 'NEW')
+        board.set_item_value(1, 2, 'NEWC')
 
     def _reset_bg(self):
         self._display.fill(BLACK)
