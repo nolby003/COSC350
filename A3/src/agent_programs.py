@@ -1,6 +1,7 @@
 
+# Todo
 def miner_behaviour(percepts, actuators):
-    pass
+    print('foo')
 
 def saboteur_behaviour(percepts, actuators):
-    pass
+    print('foo')
