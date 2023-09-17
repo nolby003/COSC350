@@ -9,7 +9,6 @@ from deck import Deck
 from une_ai.models import Agent
 from agent_programs import miner_behaviour, saboteur_behaviour
 
-
 BLACK = (30, 30, 30)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -48,6 +47,8 @@ class SaboteurGame():
         self._action_card_deck = []
         self._path_card_deck = []
         self._nugget_card_deck = []
+
+        self._path_list = []
 
         # pygame game window init and setup
         pygame.init()
@@ -220,6 +221,8 @@ class SaboteurGame():
 
         # self._board.set_item_value(6, 10, 'start')
         self._board.set_item_value(0, 2, 'start')  # set start card location
+        self._path_list.append((0, 2))
+        print(self._path_list)
         # self._board.set_item_value(6, 11, vertical)
         # print(self._board.get_item_value(6, 10))
 
@@ -230,7 +233,9 @@ class SaboteurGame():
         # print(self._board.get_item_value(14, 12))
 
         # add face down decks to board (non-playable area)
-        self._board.set_item_value(2, 7, 'path_back')  # deck cards to draw from after turn taken
+        self._board.set_item_value(0, 7, 'path_back')  # deck cards to draw from after turn taken
+        self._board.set_item_value(1, 7, 'dwarf_back')  # deck card of left over dwarves
+        self._board.set_item_value(2, 7, 'gold_back')  # deck cards of nuggets (offered to player at terminal state)
 
         # show map in terminal
         # print(self._board.get_map())
@@ -391,11 +396,11 @@ class SaboteurGame():
         # get game state
         game_state = self.get_game_state()
         # check is terminal
-        #if type(self._environment).is_terminal(game_state):
+        # if type(self._environment).is_terminal(game_state):
         #    return
 
         cur_player = game_state['player-turn']  # 3
-        print('Current Player turn: {0}' .format(cur_player))
+        print('Current Player turn: {0}'.format(cur_player))
         cur_agent = self._players[cur_player]  # Miner
         # cur_agent = type(SaboteurGame).turn(game_state)
         print('Current agent: {0}'.format(cur_agent))
@@ -406,7 +411,7 @@ class SaboteurGame():
         # self._agents[cur_agent].sense(SaboteurGame)
         # self._agents[cur_agent].sense(self)
 
-        #print(game_state['game-board'].get_map())  # show map
+        # print(game_state['game-board'].get_map())  # show map
         print('Players hand:  {0}'.format(game_state['player-hand'][self._player_turn]))  # show player hand
 
         # need to check each card in player's hand to determine card type
@@ -417,9 +422,9 @@ class SaboteurGame():
             'Action': []
         }
         i = 0
-        #print(len(hand))  # 6
-        #print(game_state['path-card-deck'])
-        while i <= len(hand)-1:
+        # print(len(hand))  # 6
+        # print(game_state['path-card-deck'])
+        while i <= len(hand) - 1:
             val = hand[i]
             if val in game_state['path-card-deck']:
                 key = 'Path'
@@ -446,6 +451,8 @@ class SaboteurGame():
         # self._board.set_item_value(1, 2, 'NEWC')
         # print(self._board.get_item_value(1,2))
         # pass
+        # game_state = SaboteurGame.get_game_state()
+        SaboteurGame.next_player_turn(self, game_state)
 
     def _reset_bg(self):
         self._display.fill(WHITE)
@@ -530,6 +537,7 @@ class SaboteurGame():
         game_board = self._board.copy()  # get copy of game board
         player_turn_list = self._player_turns  # get player turn order list
         decks = self._decks
+        path_list = self._path_list
 
         game_state = {
             'game-board': game_board,
@@ -540,14 +548,29 @@ class SaboteurGame():
             'decks': decks,
             'path-card-deck': path_card_deck,
             'action-card-deck': action_card_deck,
-            'nugget-card-deck': nugget_card_deck
+            'nugget-card-deck': nugget_card_deck,
+            'path-list': path_list
         }
         return game_state
 
     # Todo
     # function to rotate player turns when called after player card has been dealt
-    def next_player_turn(player):
-        pass
+    def next_player_turn(self, game_state):
+        # game_state = SaboteurGame.get_game_state
+        cur_player = game_state['player-turn']  # get current player
+        print(cur_player)
+        player_turn_list = game_state['player_turn_list']  # get current turn list
+        i = 0
+        while i <= len(player_turn_list):
+            if i == cur_player:  # when reach current player
+                # print(player_turn_list)
+                next_player_idx = player_turn_list.index(i)+1  # get next player in list
+                next_player = player_turn_list[next_player_idx]
+                # print(next_player)
+                player_turn_list = player_turn_list[1:] + player_turn_list[:1]  # shift list to left by 1
+                self._player_turns = player_turn_list  # update player turn list
+                self._player_turn = next_player  # update current player to next player
+            i += 1
 
     # Todo
     # show players hand on screen
@@ -572,8 +595,6 @@ class SaboteurGame():
     def draw_card(player):
         pass
 
-
-
     # get winner
     def get_winner(game_state):
         game_board = game_state['game-board']
@@ -593,68 +614,74 @@ class SaboteurGame():
 
     # all sensors, actuators and actions defined here for the AI agent
     # Sensors
-    def add_all_sensors(self):
-        self.add_sensor(
-            sensor_name='game-board-sensor',
-            initial_value=GridMap(0, 0, None),
-            validation_function=lambda v: [None]
-        )
-        self.add_sensor(
-            sensor_name='turn-taking-indicator',
-            initial_value='Miner',
-            validation_function=lambda v: v in ['Miner', 'Saboteur']
-        )
-        self.add_sensor(
-            sensor_name='player-hand',
-            initial_value=[],
-            validation_function=lambda v: isinstance(v, list)
-        )
+    # def add_all_sensors(self):
+    #     self.add_sensor(
+    #         sensor_name='game-board-sensor',
+    #         initial_value=GridMap(0, 0, None),
+    #         validation_function=lambda v: [None]
+    #     )
+    #     self.add_sensor(
+    #         sensor_name='turn-taking-indicator',
+    #         initial_value='Miner',
+    #         validation_function=lambda v: v in ['Miner', 'Saboteur']
+    #     )
+    #     self.add_sensor(
+    #         sensor_name='player-hand',
+    #         initial_value=[],
+    #         validation_function=lambda v: isinstance(v, list)
+    #     )
+    #
+    # # Actuators
+    # def add_all_actuators(self):
+    #     self.add_actuator(
+    #         actuator_name='play-hand',
+    #         initial_value='path',
+    #         validation_function=lambda v: v in SaboteurGame.play_hand
+    #     )
+    #
+    # # Actions
+    # def add_all_actions(self):
+    #     for card in SaboteurGame.play_hand:
+    #         self.add_action(
+    #             'play-hand-{0}'.format(card),
+    #             lambda c=card: {'play-hand': c}
+    #        )
 
-    # Actuators
-    def add_all_actuators(self):
-        self.add_actuator(
-            actuator_name='play-hand',
-            initial_value='path',
-            validation_function=lambda v: v in SaboteurGame.play_hand
-        )
-
-    # Actions
-    def add_all_actions(self):
-        for card in SaboteurGame.play_hand:
-            self.add_action(
-                'play-hand-{0}'.format(card),
-                lambda c=card: {'play-hand': c}
-            )
-
-    # Todo
     # legal moves
     # ensure path cards to be playable are not illegal placements
-    def legal_moves(self):
-        pass
+    # def legal_moves(self):
+    #     pass
 
     def transition_result(game_state, action):
         game_board = game_state['game-board'].copy()
         players = game_state['players']
+        player_turn_list = game_state['player_turn_list']
         player_turn = game_state['player-turn']
-        print(player_turn)
         player_hand = game_state['player-hand'][player_turn]
         remaining_cards = game_state['remaining-cards']
+        decks = game_state['decks']
         path_card_deck = game_state['path-card']
         action_card_deck = game_state['action-card']
+        nugget_card_deck = game_state['nugget-card']
+        path_list = game_state['path-list']
 
         new_game_state = {
             'game-board': game_board,
             'players': players,
+            'player_turn_list': player_turn_list,
             'player-turn': player_turn,
             'player-hand': player_hand,
             'remaining-cards': remaining_cards,
+            'decks': decks,
             'path-card': path_card_deck,
-            'action-card': action_card_deck
+            'action-card': action_card_deck,
+            'nugget-card': nugget_card_deck,
+            'path-list': path_list
         }
 
         player_turn = game_state['player-turn']
 
-        #if action.startswith('player-hand-'):
+        # if action.startswith('player-hand-'):
         #    pass
 
         return new_game_state
@@ -663,32 +690,36 @@ class SaboteurGame():
         action = None
         new_state = self.transition_result(self.get_game_state(), action)
         self._board = new_state['game-board'].copy()
+        self._players = new_state['players']
+        self._player_turns = new_state['player_turn_list']
         self._player_turn = new_state['player-turn']
         self._player_hand = new_state['player-hand']
         self._remaining_cards = new_state['remaining-cards']
         self._path_card_deck = new_state['path-card']
         self._action_card_deck = new_state['action-card']
+        self._path_list = new_state['path-list']
 
     # Todo
     # players have cards and there are cards still in the facedown deck of path and action cards
     # legal moves should be what cards remain that can be considered a playable card
     def get_legal_actions(game_state):
         game_board = game_state['game-board']  # GridMap object
-        players = game_state['players']
         player_turn = str(game_state['player-turn'])
         player_hand = str(game_state['player-hand'])
         board = game_state['game-board'].get_map()
         remaining_cards = str(game_state['remaining-cards'])
         path_card = str(game_state['path-card'])
         action_card = str(game_state['action-card'])
+        path_list = game_state['path-list']
 
         legal_actions = []
-        player_cards = []
-        for val in player_hand[1]:
-            player_cards.append(val)
-        legal_actions = player_cards
-        legal_actions.extend(remaining_cards)
-        # print(legal_actions)
+
+        # Todo
+        # based on player's hand, what path cards can they use on board
+
+        # Todo
+        # based on current state of game, can a player use an action card
+
         return legal_actions
 
     # When gamestate ends
@@ -715,20 +746,20 @@ class SaboteurGame():
         else:
             return -1
 
-    def __str__(self):
-        no_card = '   \n   \n   '
-        board_map = self._board.get_map()
-        board_str = ''
-        for row in board_map:
-            for i in range(3):
-                for card in row:
-                    if card is None:
-                        board_str += no_card.split('\n')[i]
-                    else:
-                        board_str += str(card).split('\n')[i]
-                board_str += '\n'
-
-        return board_str
+    # def __str__(self):
+    #     no_card = '   \n   \n   '
+    #     board_map = self._board.get_map()
+    #     board_str = ''
+    #     for row in board_map:
+    #         for i in range(3):
+    #             for card in row:
+    #                 if card is None:
+    #                     board_str += no_card.split('\n')[i]
+    #                 else:
+    #                     board_str += str(card).split('\n')[i]
+    #             board_str += '\n'
+    #
+    #     return board_str
 
     def main(self):
         running = True
@@ -748,6 +779,7 @@ class SaboteurGame():
             # updating game with one step
             # sense - think - act
             self._play_step()
+            pygame.time.delay(2000)
 
     @property
     def card_reveal(self):
