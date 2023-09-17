@@ -1,7 +1,9 @@
 class Card():
-    def __init__(self, card_type, image):
-        self.card_type = card_type
-        self.image = image
+    def __init__(self, card, type):
+        self.card = card
+        self.type = type
+
+
 
 
 class ActionCard(Card):

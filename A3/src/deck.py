@@ -1,60 +1,68 @@
-from card import PathCard, ActionCard
 import pygame
 import random
 
+"""
+Classic deck:
 
-# classic deck
+27x action cards:
+    9x broken cards
+    3x pick axes
+    3x lanterns
+    3x mine carts
 
-# 27x action cards:
-# 9x broken cards
-# 3x pick axes
-# 3x lanterns
-# 3x mine carts
+        9x mend cards
+        2x pick axes
+        2x lanterns
+        2x mine carts
+        1x pick axe and mine cart combo
+        1x pick axe and lantern combo
+        1x lantern and mine cart combo
 
-# 9x mend cards
-# 2x pick axes
-# 2x lanterns
-# 2x mine carts
-# 1x pick axe and mine cart combo
-# 1x pick axe and lantern combo
-# 1x lantern and mine cart combo
+    6x map cards
+    3x dynamite cards
 
-# 6x map cards
-# 3x dynamite cards
+28x Gold nugget cards:
+    4x 3 nuggets
+    8x 2 nuggets
+    16x 1 nugget
 
-# 28x Gold nugget cards:
-# 4x 3 nuggets
-# 8x 2 nuggets
-# 16x 1 nugget
+4x saboteurs
+7x Gold Diggers
 
-# 4x saboteurs
-# 7x Gold Diggers
-
-# 44x path cards:
-# 1x starting card with ladder
-# 4x south to north [|]
-# 5x south to north, east [|-]
-# 5x south to north, west to east [+]
-# 5x west to east, north
-# 3x west to east
-# 4x south, east
-# 5x south, west
-# 1x south to mid
-# 1x mid south, mid north
-# 1x mid south, mid north, mid east
-# 1x mid all
-# 1x mid west, mid east, mid north
-# 1x mid west, mid east
-# 1x mid east, mid south
-# 1x mid west, mid south
-# 1x mid west
+44x path cards:
+    1x starting card with ladder
+    4x south to north
+    5x south to north, east
+    5x south to north, west to east
+    5x west to east, north
+    3x west to east
+    4x south, east
+    5x south, west
+    1x south to mid
+    1x mid south, mid north
+    1x mid south, mid north, mid east
+    1x mid all
+    1x mid west, mid east, mid north
+    1x mid west, mid east
+    1x mid east, mid south
+    1x mid west, mid south
+    1x mid west
+"""
 
 CARD_SIZE = (80, 80)
 
 
-class Deck():
+class Deck:
     def __init__(self):
+        self._nplayers = None
         self._deck = []
+        self._dwarf_card_deck = []
+        self._nugget_deck = []
+        self._decks = {}
+        self._player_hand = {}
+        self._remaining_cards = []
+
+        self.init_decks()
 
     # card images
     cards = {
@@ -117,9 +125,9 @@ class Deck():
             'path_back': pygame.transform.scale(pygame.image.load('./Resources/PathBack.jpg'), CARD_SIZE),
             'start': pygame.transform.scale(pygame.image.load('./wiki_resources/start.png'), CARD_SIZE),
             'goal': pygame.transform.scale(pygame.image.load('./Resources/GoalBack.jpg'), CARD_SIZE),
-            #if SaboteurGame.card_reveal:
+            # if SaboteurGame.card_reveal:
             #    'gold': pygame.transform.scale(pygame.image.load('./Resources/GoalBack.jpg'), CARD_SIZE),
-            #else:
+            # else:
             #    'gold': pygame.transform.scale(pygame.image.load('./Resources/GOLD.jpg'), CARD_SIZE),
             'gold': pygame.transform.scale(pygame.image.load('./Resources/GoalBack.jpg'), CARD_SIZE),
             'E': pygame.transform.scale(pygame.image.load('./wiki_resources/E.png'), CARD_SIZE),
@@ -174,33 +182,26 @@ class Deck():
         }
     }
 
-    def set_decks():
+    def init_decks(self):
 
         print('Deck being configured.')
 
+        # Path cards
         path_card_deck = []
-        # path cards
         for i in range(4):
             path_card_deck.append('NSC')
-
         for i in range(5):
             path_card_deck.append('NSEC')
-
         for i in range(5):
             path_card_deck.append('NSEWC')
-
         for i in range(5):
             path_card_deck.append('NEWC')
-
         for i in range(3):
             path_card_deck.append('EWC')
-
         for i in range(4):
             path_card_deck.append('NEC')
-
         for i in range(5):
             path_card_deck.append('NWC')
-
         path_card_deck.append('S')
         path_card_deck.append('NS')
         path_card_deck.append('NSE')
@@ -211,35 +212,122 @@ class Deck():
         path_card_deck.append('SW')
         path_card_deck.append('W')
 
-        action_card_deck = []
+        path_cards = {'PathCard': []}
+        i = 1
+        while i <= len(path_card_deck):
+            sel = path_card_deck[i]
+            update_val = {'PathCard': sel}
+            path_cards.update(update_val)
+            i += 1
+        print('PathCards: {0}'.format(path_cards))
+
+
         # Action cards
+        action_card_deck = []
         for i in range(6):
             action_card_deck.append('map')
-
         for i in range(9):
             action_card_deck.append('sabotage')
-
         for i in range(9):
             action_card_deck.append('mend')
-
         for i in range(3):
             action_card_deck.append('dynamite')
 
-        # hand out x cards to each player
-        all_items = path_card_deck
-        all_items.extend(action_card_deck)
+        # Dwarf cards
+        dwarf_card_deck = []
+        miners = 7
+        saboteurs = 4
+        for i in range(miners):
+            dwarf_card_deck.append('Miner')
+        for i in range(saboteurs):
+            dwarf_card_deck.append('Saboteur')
 
-        return all_items
+        # Goal cards are setup on SaboteurBaseEnvironment class
 
-    # shuffle deck
-    def shuffle(self):
+        # Nugget cards
+        nugget_deck = []
+        one_nugget = 16
+        two_nugget = 8
+        three_nugget = 4
+        for i in range(one_nugget):
+            nugget_deck.append('1-Nugget')
+        for i in range(two_nugget):
+            nugget_deck.append('2-Nuggets')
+        for i in range(three_nugget):
+            nugget_deck.append('3-Nuggets')
+
+        # Shuffle decks
+
+        # Dwarf cards
+        random.shuffle(dwarf_card_deck)
+
+        # Combine path and action cards then shuffle
+        self._deck = path_card_deck
+        self._deck.extend(action_card_deck)
         random.shuffle(self._deck)
+
+        # Nugget cards
+        random.shuffle(nugget_deck)
+
+        # print(self.nugget_deck)
+        # set decks to memory
+        self._dwarf_card_deck = dwarf_card_deck
+        self._nugget_deck = nugget_deck
+
+        self._decks = {
+            'Deck': self._deck,
+            'Dwarf': dwarf_card_deck,
+            'Nugget': self._nugget_deck
+        }
+
+        # allocate cards from the deck to players
+        player_hand = {}
+        for i in range(1, self._nplayers + 1):
+            key = i
+            value = []
+            player_hand[key] = value
+        print('Player hand before allocation: {0}'.format(player_hand))
+
+        all_items = self.get_deck('Deck')
+        if self._nplayers in range(3, 5):
+            cards_each = 6
+        elif self._nplayers in range(6, 7):
+            cards_each = 5
+        elif self._nplayers in range(8, 10):
+            cards_each = 4
+
+        for key in player_hand:
+            for _ in range(cards_each):
+                if all_items:
+                    item = all_items.pop()
+                    player_hand[key].append(item)
+        self._player_hand = player_hand
+        # print(player_hand)
+
+        # player_hand = player_hand
+        print('Player hand after card allocation: {0}'.format(player_hand))
+
+        remaining_cards = all_items
+        self._remaining_cards = remaining_cards
+        print('Remaining cards in deck after player allocation: {0}'.format(len(remaining_cards)))
+
+        # print(self.get_deck('Dwarf'))  # works
 
     # draw from deck
     def draw(self):
         assert len(self._deck) > 0, "There are no more cards in the deck"
-
         return self._deck.pop()
 
-    def get_deck(self):
-        return self._deck
+    def get_deck(self, key):
+        # print('getting decks')
+        return self._decks[key]
+
+    def get_player_hand(self, player):
+        return self._player_hand[player]
+
+    def get_remaining_cards(self):
+        return self._remaining_cards
+
+    def get_nplayers(self):
+        return self._nplayers
+
