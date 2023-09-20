@@ -22,7 +22,7 @@ DISPLAY_HEIGHT = 768
 BOX_SIZE = 80
 
 NCOLS = 9
-NROWS = 8
+NROWS = 9
 
 
 class SaboteurGame():
@@ -32,23 +32,29 @@ class SaboteurGame():
                  , box_size=BOX_SIZE):
 
         self._board = GridMap(NCOLS, NROWS, None)
-        self._player_turn = None
-        self._player_hand = {}
+        self._player_turn = None  # int - player turn init
+        self._player_hand = {}  # dict - each player's hand
 
-        self._remaining_cards = []
-        self._deck = []
-        self._decks = {}
+        self._nplayers = nplayers  # int - number of players
+        self._players = {}  # dict - number of players
+        self._player_turns = []  # list - player turns in a set order
 
-        self._nplayers = nplayers
-        self._players = {}
-        self._player_turns = []
+        self._deck = []  # list - deck of path and action cards
+        self._decks = {}  # dict - of all decks in game (path, action, nugget, dwarf)
+        self._dwarf_card_deck = []  # list - deck of dwarf cards
+        self._action_card_deck = []  # list - deck of action cards
+        self._path_card_deck = []  # list - deck of path cards
+        self._nugget_card_deck = []  # list - deck of nugget cards
+        self._remaining_cards = []  # list - of remaining cards within deck
 
-        self._dwarf_card_deck = []
-        self._action_card_deck = []
-        self._path_card_deck = []
-        self._nugget_card_deck = []
+        self._path_list = []  # list - list of path cards placed on board
+        self._discard_deck = []  # list - list of cards in discard pile (from player hands)
 
-        self._path_list = []
+        self._action_given = {}  # list - action cards given to players
+
+        self.memory_map = {}  # dict - a map from each player's perspective of each player and their actions
+        # the map helps to build inference to what other players are doing
+        # helps to understand a determination of whether a player is a miner or saboteur
 
         # pygame game window init and setup
         pygame.init()
@@ -127,10 +133,18 @@ class SaboteurGame():
         action_card_deck = []
         for i in range(6):
             action_card_deck.append('map')
-        for i in range(9):
-            action_card_deck.append('sabotage')
-        for i in range(9):
-            action_card_deck.append('mend')
+        # for i in range(9):
+        action_card_deck.append('sab_axe')
+        action_card_deck.append('sab_cart')
+        action_card_deck.append('sab_lant')
+        # for i in range(9):
+        action_card_deck.append('mend_lantcart')
+        action_card_deck.append('mend_axelant')
+        action_card_deck.append('mend_axecart')
+        action_card_deck.append('mend_cart')
+        action_card_deck.append('mend_axe')
+        action_card_deck.append('mend_lant')
+
         for i in range(3):
             action_card_deck.append('dynamite')
         action_cards = {'ActionCard': action_card_deck}
@@ -220,7 +234,7 @@ class SaboteurGame():
             goal_cards.append(label)
 
         # self._board.set_item_value(6, 10, 'start')
-        self._board.set_item_value(0, 2, 'start')  # set start card location
+        self._board.set_item_value(0, 2, 'start')  # set start card location (y, x)
         self._path_list.append((0, 2))
         print(self._path_list)
         # self._board.set_item_value(6, 11, vertical)
@@ -324,6 +338,27 @@ class SaboteurGame():
             value = []
             new_player_list[key] = value
         print('Playerlist before: {0}'.format(new_player_list))
+
+        actioncard_player_list = {}
+        for i in range(1, npl + 1):
+            key = i
+            value = []
+            actioncard_player_list[key] = value
+        print('Actioncard Playerlist before: {0}'.format(actioncard_player_list))
+
+        # create agent memory maps
+        new_player_list2 = {}
+        for i in range(1, npl + 1):
+            key = i
+            value = []
+            new_player_list2[key] = value
+
+        for i in range(1, npl + 1):
+            key = i
+            value = new_player_list2
+            self.memory_map[key] = value
+        print('Memory map dict: {0}'.format(self.memory_map))
+
         # --------------------------------------------------------
 
         # --------------------------------------------------------
@@ -388,17 +423,23 @@ class SaboteurGame():
 
         self.main()
 
-    # get player turn
-    def turn(game_state):
-        return game_state['player-turn']
+    # # get player turn
+    # def turn(game_state):
+    #     return game_state['player-turn']
 
+    # Todo - In progress
     def _play_step(self):
         # get game state
         game_state = self.get_game_state()
         # check is terminal
-        # if type(self._environment).is_terminal(game_state):
+        # if SaboteurGame.is_terminal(self, game_state):
         #    return
 
+        """
+        Who's turn is it?
+        What cards do they have?
+        What type of cards do they have?
+        """
         cur_player = game_state['player-turn']  # 3
         print('Current Player turn: {0}'.format(cur_player))
         cur_agent = self._players[cur_player]  # Miner
@@ -407,16 +448,22 @@ class SaboteurGame():
 
         # --------------------------------------------------------
         # SENSE
+        # Getting board, player, player hand information
+        # to assist the AI to make card playing decisions
         # --------------------------------------------------------
+
         # self._agents[cur_agent].sense(SaboteurGame)
         # self._agents[cur_agent].sense(self)
 
         # print(game_state['game-board'].get_map())  # show map
-        print('Players hand:  {0}'.format(game_state['player-hand'][self._player_turn]))  # show player hand
+        # print('Players hand:  {0}'.format(game_state['player-hand'][self._player_turn]))  # show player hand
 
-        # need to check each card in player's hand to determine card type
-        # perhaps by a function
-        hand = game_state['player-hand'][self._player_turn]
+        # Get player's hand and determine what card types they are (path or action)
+        # print(SaboteurGame.get_player_hand(self, game_state))
+        # hand = game_state['player-hand'][self._player_turn]
+        hand = SaboteurGame.get_player_hand(self, game_state)
+        print('Players hand:  {0}'.format(hand))  # show player hand
+
         options = {
             'Path': [],
             'Action': []
@@ -435,9 +482,26 @@ class SaboteurGame():
             i += 1
         print('Player card options: {0}'.format(options))
 
+        text = 'Player hand:'
+        coords = (2, 8)
+        self._draw_text(text, coords)
+
+        self.draw_hand()
+
         # --------------------------------------------------------
         # THINK
+        # researching the current game state to strategize card playing techniques
         # --------------------------------------------------------
+
+        """
+        need to think about how to look at the current board where paths are currently laid
+        as a miner, goal is to reach the gold card hidden amongst the three goal cards
+        and to assist other miners with mending when broken cards are given
+        
+        as a saboteur, same goal is to reach the gold, but also to provide broken cards to prevent miners
+        
+        """
+
         # actions = self._agents[cur_player].think()
         # player = 'Miner' if cur_player == 'Miner' else 'Saboteur'
         # player = player_turn
@@ -446,27 +510,43 @@ class SaboteurGame():
 
         # --------------------------------------------------------
         # ACT
+        # take action based on the strategy chosen
         # --------------------------------------------------------
+
         # self._agents[cur_player].act(actions)
         # self._board.set_item_value(1, 2, 'NEWC')
         # print(self._board.get_item_value(1,2))
         # pass
         # game_state = SaboteurGame.get_game_state()
-        SaboteurGame.next_player_turn(self, game_state)
+
+        # --------------------------------------------------------
+        # function testing playing a card chosen after AI think
+        # --------------------------------------------------------
+        ctype = 'Path'
+        # ctype = 'Action'
+        y = 3  # y coord
+        x = 0  # x coord
+        p = ''  # player to hand action card to
+        card = random.choice(options[ctype])
+        SaboteurGame.play_card(self, card, ctype, x, y, p)
+        # --------------------------------------------------------
+
+        SaboteurGame.next_player_turn(self, game_state)  # go to next player's turn
 
     def _reset_bg(self):
         self._display.fill(WHITE)
 
+    # Todo - Complete - working
     # Draw card image references to board based on values on board
     def _draw_card(self, x, y, ttype, card):
         x_coord = self._padding_left + x * self._box_size
         y_coord = self._padding_top + y * self._box_size
         if ttype == 'blank':
             color = WHITE
-            pygame.draw.rect(self._display, color, pygame.Rect(x_coord, y_coord, self._box_size, self._box_size))
+            pygame.draw.rect(self._display, color, pygame.Rect(x_coord-1, y_coord-1, self._box_size, self._box_size), 1)
         elif ttype == 'card':
-            color = BLUE
-            pygame.draw.rect(self._display, color, pygame.Rect(x_coord, y_coord, self._box_size, self._box_size))
+            color = BLACK
+            pygame.draw.rect(self._display, color, pygame.Rect(x_coord-1, y_coord-1, self._box_size, self._box_size), 1)
             if card == 'start':
                 self._display.blit(Deck.cards['wiki']['start'], (x_coord, y_coord))
             elif card == 'goal':
@@ -474,6 +554,7 @@ class SaboteurGame():
             else:
                 self._display.blit(Deck.cards['wiki'][card], (x_coord, y_coord))
 
+    # Todo - Complete - working
     # draw game board within pygame window
     def _draw_board(self):
         for i in range(0, self._n_cols):
@@ -493,20 +574,16 @@ class SaboteurGame():
                     self._draw_card(i, j, type, card)
 
     # draw text to pygame window
-    def _draw_text(self, text_message, padding_top, orientation, font_size=20):
-        font = pygame.font.SysFont(self._font, font_size)
-        text_size = font.size(text_message)
+    def _draw_text(self, text_message, coords, font_size=20):
+        x_coord = self._padding_left + coords[0] * self._box_size
+        y_coord = self._padding_top + coords[1] * self._box_size
+
+        pygame.draw.rect(self._display, BLACK, pygame.Rect(x_coord - 1, y_coord - 1, self._box_size, self._box_size), 1)
+
+        font = pygame.font.Font(None, font_size)
         text = font.render(text_message, True, BLACK)
-        top = self._padding_top + self._n_rows * self._box_size + 10 + padding_top
-        if orientation == 'center':
-            left = int((self._display_size[0] - text_size[0]) / 2)
-        elif orientation == 'left':
-            left = self._padding_left
-        elif orientation == 'right':
-            left = self._display_size[0] - text_size[0] - self._padding_left
-        else:
-            left = 0
-        self._display.blit(text, (left, top))
+        self._display.blit(text, (x_coord, y_coord))
+        pygame.display.flip()
 
     # Todo
     # draw game over within pygame window when there is a terminal state
@@ -526,7 +603,10 @@ class SaboteurGame():
     def wait_for_user_input():
         pass
 
-    # current state of the game
+    # Todo - Completed - Working
+    """
+    current state of the game
+    """
     def get_game_state(self):
         player_turn = self._player_turn  # what player turn is it?
         player_hand = self._player_hand  # what cards does the player hand have?
@@ -553,18 +633,19 @@ class SaboteurGame():
         }
         return game_state
 
-    # Todo
-    # function to rotate player turns when called after player card has been dealt
+    # Todo - Completed - Working
+    """
+    function to rotate player turns when called after player card has been dealt
+    """
     def next_player_turn(self, game_state):
-        # game_state = SaboteurGame.get_game_state
         cur_player = game_state['player-turn']  # get current player
-        print(cur_player)
+        # print(cur_player)
         player_turn_list = game_state['player_turn_list']  # get current turn list
         i = 0
         while i <= len(player_turn_list):
             if i == cur_player:  # when reach current player
                 # print(player_turn_list)
-                next_player_idx = player_turn_list.index(i)+1  # get next player in list
+                next_player_idx = player_turn_list.index(i) + 1  # get next player in list
                 next_player = player_turn_list[next_player_idx]
                 # print(next_player)
                 player_turn_list = player_turn_list[1:] + player_turn_list[:1]  # shift list to left by 1
@@ -572,29 +653,101 @@ class SaboteurGame():
                 self._player_turn = next_player  # update current player to next player
             i += 1
 
-    # Todo
-    # show players hand on screen
-    def draw_hand(player):
-        pass
+    # Todo - Completed - Working
+    """
+    show player's hand on screen
+    """
+    def draw_hand(self):
+        col = 8
+        game_state = self.get_game_state()
+        player_hand = SaboteurGame.get_player_hand(self, game_state)
+        if len(player_hand) <= 6:
+            # text = str(player_hand[0])
+            # self._draw_text(player_hand[0], (3, 7))
+            self._board.set_item_value(3, col, player_hand[0])
 
-    # Todo
+            # self._draw_text(player_hand[1], (4, 7))
+            self._board.set_item_value(4, col, player_hand[1])
+
+            # self._draw_text(player_hand[2], (5, 7))
+            self._board.set_item_value(5, col, player_hand[2])
+
+            # self._draw_text(player_hand[3], (6, 7))
+            self._board.set_item_value(6, col, player_hand[3])
+
+            # self._draw_text(player_hand[4], (7, 7))
+            self._board.set_item_value(7, col, player_hand[4])
+
+            # self._draw_text(player_hand[5], (8, 7))
+            self._board.set_item_value(8, col, player_hand[5])
+
+    # Todo - Complete - Working
     # get current player's cards
-    def get_player_hand(self, player):
-        return self._player_hand[self._player_turn]
+    def get_player_hand(self, game_state):
+        cur_player = game_state['player-turn']  # get current player
+        player_hand = game_state['player-hand'][self._player_turn]
+        return player_hand
 
-    # Todo
-    # play a card from player's hand
-    def play_card(self, player):
-        cards = []
-        cards = self.get_player_hand(player)
-        for card in cards:
-            print(card)
+    # Todo - Complete - Working
+    # play a card from player's hand chosen by AI/human
+    def play_card(self, card, ctype, x, y, player):
+        game_state = self.get_game_state()
+        # hand = SaboteurGame.get_player_hand(self, game_state)
+        turn = game_state['player-turn']
+        agent = self._players[turn]
+        if ctype == 'Path':
+            # validate then perform path card placement on board
+            print('Player chose to place a path card {0}: '.format(card))
+            self._board.set_item_value(x, y, card)  # place path card on board
+            self._path_list.append((y, x))  # add path card to list
+        elif ctype == 'Action':
+            # validate then perform action card
+            print('Player chose to present an action card {0} to player: {1} '.format(card, player))
+            update_val = {player: card}
+            self._action_given.update(update_val)
+        self.remove_card(card)  # remove card from player's hand
+        self.discard_card(card)  # discard card after it has been used
+        self.draw_card(player)  # draw another card from the deck
+        SaboteurGame.memorize(self, turn, agent, ctype, card)  # for each player, remember what card they played
 
-    # Todo
+    # Todo - Complete - Working
+    def remove_card(self, card):
+        game_state = self.get_game_state()
+        player_hand = SaboteurGame.get_player_hand(self, game_state)
+        player_hand.remove(card)
+        print('Player hand after card removal: {0}'.format(player_hand))
+
+    # Todo - Complete - Working
+    def memorize(self, turn, agent, ctype, card):
+        agent_memory = self.memory_map
+        for turn_key in agent_memory:
+            val = (ctype + '-' + card)
+            if turn_key == turn:
+                agent_memory[turn_key][turn_key].append(val)
+        print('Agent memory map: {0}'.format(agent_memory))
+        print('Memory map: {0}'.format(self.memory_map))
+
+    # Todo - Complete - Working
+    # add played card to discard deck
+    def discard_card(self, card):
+        self._discard_deck.append(card)
+        print('Discard deck: {0}'.format(self._discard_deck))
+
+    # Todo - Complete - Working
     # draw card from deck after player plays a card in hand
-    def draw_card(player):
-        pass
+    def draw_card(self, player):
+        if len(self._remaining_cards) > 0:
+            game_state = self.get_game_state()
+            player_hand = SaboteurGame.get_player_hand(self, game_state)
+            print('Remaining cards from deck before draw: {0}'.format(self._remaining_cards))
+            card = self._remaining_cards.pop()
+            print('Card drawn from deck: {0}'.format(card))
+            print('Remaining cards from deck after draw: {0}'.format(self._remaining_cards))
+            player_hand.append(card)
+        else:
+            print('There are no more cards to draw from, deck empty.')
 
+    # Todo
     # get winner
     def get_winner(game_state):
         game_board = game_state['game-board']
@@ -604,13 +757,13 @@ class SaboteurGame():
         else:
             return None
 
-    # get percepts for the AI agent
-    def get_percepts(self):
-        game_state = self.get_game_state()
-        return {
-            'game-board-sensor': game_state['game-board'],
-            'turn-taking-indicator': self._player_turn
-        }
+    # # get percepts for the AI agent
+    # def get_percepts(self):
+    #     game_state = self.get_game_state()
+    #     return {
+    #         'game-board-sensor': game_state['game-board'],
+    #         'turn-taking-indicator': self._player_turn
+    #     }
 
     # all sensors, actuators and actions defined here for the AI agent
     # Sensors
@@ -678,12 +831,7 @@ class SaboteurGame():
             'nugget-card': nugget_card_deck,
             'path-list': path_list
         }
-
         player_turn = game_state['player-turn']
-
-        # if action.startswith('player-hand-'):
-        #    pass
-
         return new_game_state
 
     def state_transition(self, agent_actuators):
@@ -722,6 +870,7 @@ class SaboteurGame():
 
         return legal_actions
 
+    # Todo
     # When gamestate ends
     def is_terminal(game_state):
         remaining_actions = SaboteurGame.get_legal_actions(game_state)
@@ -734,6 +883,7 @@ class SaboteurGame():
 
         return False
 
+    # Todo
     # winner payoff
     def payoff(game_state, player):
         # it must return a payoff for the considered player ('Y' or 'R') in a given game_state
@@ -745,21 +895,6 @@ class SaboteurGame():
             return 1
         else:
             return -1
-
-    # def __str__(self):
-    #     no_card = '   \n   \n   '
-    #     board_map = self._board.get_map()
-    #     board_str = ''
-    #     for row in board_map:
-    #         for i in range(3):
-    #             for card in row:
-    #                 if card is None:
-    #                     board_str += no_card.split('\n')[i]
-    #                 else:
-    #                     board_str += str(card).split('\n')[i]
-    #             board_str += '\n'
-    #
-    #     return board_str
 
     def main(self):
         running = True
@@ -781,17 +916,10 @@ class SaboteurGame():
             self._play_step()
             pygame.time.delay(2000)
 
-    @property
-    def card_reveal(self):
-        return self._card_reveal
-
 
 if __name__ == '__main__':
     agent_miner = miner_behaviour
     agent_saboteur = saboteur_behaviour
-    # environment = SaboteurBaseEnvironment()
-    # environment.add_player('Miner', agent_miner)
-    # environment.add_player('Saboteur', agent_saboteur)
-
     nplayers = 3
+
     SaboteurGame(agent_miner, agent_saboteur, nplayers)
