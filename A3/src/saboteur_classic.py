@@ -50,7 +50,7 @@ class SaboteurGame():
         self._path_list = []  # list - list of path cards placed on board
         self._discard_deck = []  # list - list of cards in discard pile (from player hands)
 
-        self._action_given = {}  # list - action cards given to players
+        self._action_given = {}  # dict - action cards given to players
 
         self.memory_map = {}  # dict - a map from each player's perspective of each player and their actions
         # the map helps to build inference to what other players are doing
@@ -236,7 +236,7 @@ class SaboteurGame():
         # self._board.set_item_value(6, 10, 'start')
         self._board.set_item_value(0, 2, 'start')  # set start card location (y, x)
         self._path_list.append((0, 2))
-        print(self._path_list)
+        # print(self._path_list)
         # self._board.set_item_value(6, 11, vertical)
         # print(self._board.get_item_value(6, 10))
 
@@ -502,6 +502,11 @@ class SaboteurGame():
         
         """
 
+        if cur_agent == 'Miner':
+            miner_behaviour(game_state, options)
+        elif cur_agent == 'Saboteur':
+            saboteur_behaviour(game_state, options)
+
         # actions = self._agents[cur_player].think()
         # player = 'Miner' if cur_player == 'Miner' else 'Saboteur'
         # player = player_turn
@@ -600,7 +605,7 @@ class SaboteurGame():
         pass
 
     # suitable if there are human players
-    def wait_for_user_input():
+    def wait_for_user_input(self):
         pass
 
     # Todo - Completed - Working
@@ -618,6 +623,8 @@ class SaboteurGame():
         player_turn_list = self._player_turns  # get player turn order list
         decks = self._decks
         path_list = self._path_list
+        actions_given = self._action_given
+        memory_map = self.memory_map
 
         game_state = {
             'game-board': game_board,
@@ -629,7 +636,9 @@ class SaboteurGame():
             'path-card-deck': path_card_deck,
             'action-card-deck': action_card_deck,
             'nugget-card-deck': nugget_card_deck,
-            'path-list': path_list
+            'path-list': path_list,
+            'actions-given': actions_given,
+            'memory-map': memory_map
         }
         return game_state
 
@@ -817,6 +826,8 @@ class SaboteurGame():
         action_card_deck = game_state['action-card']
         nugget_card_deck = game_state['nugget-card']
         path_list = game_state['path-list']
+        actions_given = game_state['action_given']
+        memory_map = game_state['memory_map']
 
         new_game_state = {
             'game-board': game_board,
@@ -829,9 +840,10 @@ class SaboteurGame():
             'path-card': path_card_deck,
             'action-card': action_card_deck,
             'nugget-card': nugget_card_deck,
-            'path-list': path_list
+            'path-list': path_list,
+            'actions-given': actions_given,
+            'memory-map': memory_map
         }
-        player_turn = game_state['player-turn']
         return new_game_state
 
     def state_transition(self, agent_actuators):
@@ -846,6 +858,8 @@ class SaboteurGame():
         self._path_card_deck = new_state['path-card']
         self._action_card_deck = new_state['action-card']
         self._path_list = new_state['path-list']
+        self._action_given = new_state['actions-given']
+        self.memory_map = new_state['memory-map']
 
     # Todo
     # players have cards and there are cards still in the facedown deck of path and action cards
