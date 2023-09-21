@@ -500,11 +500,15 @@ class SaboteurGame():
         
         as a saboteur, same goal is to reach the gold, but also to provide broken cards to prevent miners
         
+        and collectively build a path
+        
         """
 
         if cur_agent == 'Miner':
+            result = miner_behaviour(game_state, options)
             miner_behaviour(game_state, options)
         elif cur_agent == 'Saboteur':
+            result = saboteur_behaviour(game_state, options)
             saboteur_behaviour(game_state, options)
 
         # actions = self._agents[cur_player].think()
@@ -527,17 +531,20 @@ class SaboteurGame():
         # --------------------------------------------------------
         # function testing playing a card chosen after AI think
         # --------------------------------------------------------
-        ctype = 'Path'
-        # ctype = 'Action'
-        y = 3  # y coord
-        x = 0  # x coord
-        p = ''  # player to hand action card to
-        card = random.choice(options[ctype])
-        SaboteurGame.play_card(self, card, ctype, x, y, p)
+        # ctype = 'Path'
+        # # ctype = 'Action'
+        # y = 3  # y coord
+        # x = 0  # x coord
+        # p = ''  # player to hand action card to
+        # card = random.choice(options[ctype])
+        # SaboteurGame.play_card(self, card, ctype, x, y, p)  # this will be statically uncommented at final
+        SaboteurGame.play_card(self, result[0], result[1], result[2], result[3], result[4])
         # --------------------------------------------------------
 
+        # this will be statically uncommented at final
         SaboteurGame.next_player_turn(self, game_state)  # go to next player's turn
 
+    # Todo - Complete - working
     def _reset_bg(self):
         self._display.fill(WHITE)
 
@@ -595,6 +602,7 @@ class SaboteurGame():
     def _draw_game_over(self):
         pass
 
+    # Todo - Complete - Working
     # draw frame for pygame window
     def _draw_frame(self):
         self._reset_bg()
@@ -708,7 +716,8 @@ class SaboteurGame():
             # validate then perform path card placement on board
             print('Player chose to place a path card {0}: '.format(card))
             self._board.set_item_value(x, y, card)  # place path card on board
-            self._path_list.append((y, x))  # add path card to list
+            self._path_list.append((x, y))  # add path card to list
+            print(self._path_list)
         elif ctype == 'Action':
             # validate then perform action card
             print('Player chose to present an action card {0} to player: {1} '.format(card, player))
