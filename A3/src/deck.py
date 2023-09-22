@@ -126,6 +126,7 @@ class Deck:
             # else:
             #    'gold': pygame.transform.scale(pygame.image.load('./Resources/GOLD.jpg'), CARD_SIZE),
             'gold': pygame.transform.scale(pygame.image.load('./Resources/paint/GoalBack.jpg'), CARD_SIZE),
+
             'E': pygame.transform.scale(pygame.image.load('./wiki_resources/E.png'), CARD_SIZE),
             'EW': pygame.transform.scale(pygame.image.load('./wiki_resources/EW.png'), CARD_SIZE),
             'EWC': pygame.transform.scale(pygame.image.load('./wiki_resources/EWC.png'), CARD_SIZE),
@@ -176,6 +177,39 @@ class Deck:
             'saboteur': pygame.transform.scale(pygame.image.load('./Resources/SpecialCards/Saboteur.jpg'), CARD_SIZE),
             'miner': pygame.transform.scale(pygame.image.load('./Resources/SpecialCards/GoldDigger.jpg'), CARD_SIZE)
         }
+    }
+
+    # for each path card, what direction can you go (enter from)? (North, East, South, West) 0 or 1
+    validation = {
+        # (North, East, South, West)
+        'start': (1, 1, 1, 1),
+        'E': (0, 1, 0, 0),
+        'EW': (0, 1, 0, 1),
+        'EWC': (0, 1, 0, 1),
+        'N': (1, 0, 0, 0),
+        'NE': (1, 1, 0, 0),
+        'NEC': (1, 1, 0, 0),
+        'NEW': (1, 1, 0, 1),
+        'NEWC': (1, 1, 0, 1),
+        'NS': (1, 0, 1, 0),
+        'NSC': (1, 0, 1, 0),
+        'NSE': (1, 1, 1, 0),
+        'NSEC': (1, 1, 1, 0),
+        'NSEW': (1, 1, 1, 1),
+        'NSEWC': (1, 1, 1, 1),
+        'NSW': (1, 0, 1, 1),
+        'NSWC': (1, 0, 1, 1),
+        'NW': (1, 0, 0, 1),
+        'NWC': (1, 0, 0, 1),
+        'S': (0, 0, 1, 0),
+        'SE': (0, 1, 1, 0),
+        'SEC': (0, 1, 1, 0),
+        'SEW': (0, 1, 1, 1),
+        'SEWC': (0, 1, 1, 1),
+        'SW': (0, 0, 1, 1),
+        'SWC': (0, 0, 1, 1),
+        'W': (0, 0, 0, 1),
+        'goal': (1, 1, 1, 1)
     }
 
 

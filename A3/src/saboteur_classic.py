@@ -7,6 +7,7 @@ from card import PathCard
 from deck import Deck
 
 from une_ai.models import Agent
+#from agent_programs import agent, miner_behaviour, saboteur_behaviour
 from agent_programs import miner_behaviour, saboteur_behaviour
 
 BLACK = (30, 30, 30)
@@ -504,6 +505,9 @@ class SaboteurGame():
         
         """
 
+        # result = agent(game_state, cur_agent, options)
+        # agent(game_state, cur_agent, options)
+
         if cur_agent == 'Miner':
             result = miner_behaviour(game_state, options)
             miner_behaviour(game_state, options)
@@ -714,15 +718,17 @@ class SaboteurGame():
         agent = self._players[turn]
         if ctype == 'Path':
             # validate then perform path card placement on board
-            print('Player chose to place a path card {0}: '.format(card))
+            print('Player chose to place a path card: {0}'.format(card))
             self._board.set_item_value(x, y, card)  # place path card on board
             self._path_list.append((x, y))  # add path card to list
             print(self._path_list)
         elif ctype == 'Action':
             # validate then perform action card
-            print('Player chose to present an action card {0} to player: {1} '.format(card, player))
+            print('Player chose to present an action card: {0} to player: {1} '.format(card, player))
             update_val = {player: card}
             self._action_given.update(update_val)
+        elif ctype == 'Discard':
+            print('Player chose to discard a card: {0}'.format(card))
         self.remove_card(card)  # remove card from player's hand
         self.discard_card(card)  # discard card after it has been used
         self.draw_card(player)  # draw another card from the deck
@@ -762,6 +768,7 @@ class SaboteurGame():
             print('Card drawn from deck: {0}'.format(card))
             print('Remaining cards from deck after draw: {0}'.format(self._remaining_cards))
             player_hand.append(card)
+            print('Remaining cards: {0}'.format(len(self._remaining_cards)))
         else:
             print('There are no more cards to draw from, deck empty.')
 
@@ -775,53 +782,11 @@ class SaboteurGame():
         else:
             return None
 
-    # # get percepts for the AI agent
-    # def get_percepts(self):
-    #     game_state = self.get_game_state()
-    #     return {
-    #         'game-board-sensor': game_state['game-board'],
-    #         'turn-taking-indicator': self._player_turn
-    #     }
-
-    # all sensors, actuators and actions defined here for the AI agent
-    # Sensors
-    # def add_all_sensors(self):
-    #     self.add_sensor(
-    #         sensor_name='game-board-sensor',
-    #         initial_value=GridMap(0, 0, None),
-    #         validation_function=lambda v: [None]
-    #     )
-    #     self.add_sensor(
-    #         sensor_name='turn-taking-indicator',
-    #         initial_value='Miner',
-    #         validation_function=lambda v: v in ['Miner', 'Saboteur']
-    #     )
-    #     self.add_sensor(
-    #         sensor_name='player-hand',
-    #         initial_value=[],
-    #         validation_function=lambda v: isinstance(v, list)
-    #     )
-    #
-    # # Actuators
-    # def add_all_actuators(self):
-    #     self.add_actuator(
-    #         actuator_name='play-hand',
-    #         initial_value='path',
-    #         validation_function=lambda v: v in SaboteurGame.play_hand
-    #     )
-    #
-    # # Actions
-    # def add_all_actions(self):
-    #     for card in SaboteurGame.play_hand:
-    #         self.add_action(
-    #             'play-hand-{0}'.format(card),
-    #             lambda c=card: {'play-hand': c}
-    #        )
-
+    # Todo
     # legal moves
     # ensure path cards to be playable are not illegal placements
-    # def legal_moves(self):
-    #     pass
+    def legal_moves(self):
+        pass
 
     def transition_result(game_state, action):
         game_board = game_state['game-board'].copy()
